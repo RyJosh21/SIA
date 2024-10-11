@@ -1,4 +1,3 @@
-
 <?php 
 session_start();  // Start the session
 include 'db_config.php';
@@ -328,13 +327,14 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin: 0; /* No extra space around the date/time */
         }
 
-       .date {
-			color: #031124;
-			font-size: 18px;
-			text-align: right;
-			margin-left: auto;
-			margin-right: 50px;
-		}
+        .date {
+            color: #031124;
+            font-size: 18px;
+            text-align: right;
+            margin-left: auto;
+            margin-right: 50px;
+        }
+
         .table-container {
             margin-left: 40px;
             margin-right: 40px;
@@ -642,20 +642,18 @@ function clearFilters() {
         }
     }
 
-     function updateDateTime() {
+    // Update Date and Time Function
+    function updateDateTime() {
         const now = new Date();
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit' 
-        };
-        document.getElementById('dateTime').innerHTML = now.toLocaleDateString('en-US', options);
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateString = now.toLocaleDateString('en-US', dateOptions);
+        document.getElementById('dateTime').textContent = `${dateString} ${timeString}`;
     }
-
-    setInterval(updateDateTime, 1000); // Update date and time every second
+    
+    // Update date and time every second
+    setInterval(updateDateTime, 1000);
+    updateDateTime(); // Initial call to display immediately
 </script>
 </body>
 </html>
