@@ -328,13 +328,14 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin: 0; /* No extra space around the date/time */
         }
 
-       .date {
-			color: #031124;
-			font-size: 18px;
-			text-align: right;
-			margin-left: auto;
-			margin-right: 50px;
-		}
+        .date {
+            color: #031124;
+            font-size: 18px;
+            text-align: right;
+            margin-left: auto;
+            margin-right: 50px;
+        }
+
         .table-container {
             margin-left: 40px;
             margin-right: 40px;
@@ -412,7 +413,7 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="circle-photo">
         <img src="Assets/ADMIN.png" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%;">
     </div>
-    <h2>Admin</h2>
+    <h2>Staff</h2>
     
     <a href="index.php">
         <div class="mini-circle-photo">
@@ -434,15 +435,10 @@ $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <img src="Assets/SALES HISTORY.png" alt="Sales History Icon" style="width: 100%; height: 100%; border-radius: 50%;">
         </div> Sales History
     </a>
-    <a href="delete.php">
+   <a href="logout.php" class="logout-link">
         <div class="mini-circle-photo">
-            <img src="Assets/DELETE.png" alt="Delete Icon" style="width: 100%; height: 100%; border-radius: 50%;">
-        </div> Delete Item
-    </a>
-    <a href="logout.php" class="logout-link">
-        <div class="mini-circle-photo">
-            <img src="Assets/LOGOUT.png" alt="Logout Icon" style="width: 100%; height: 100%; border-radius: 50%;">
-        </div> Logout
+        <img src="Assets/LOGOUT.png" alt="Inventory Icon" 
+        style="width: 100%; height: 100%; border-radius: 50%;"></div> Logout
     </a>
 </div>
 
@@ -642,20 +638,18 @@ function clearFilters() {
         }
     }
 
-     function updateDateTime() {
+    // Update Date and Time Function
+    function updateDateTime() {
         const now = new Date();
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit' 
-        };
-        document.getElementById('dateTime').innerHTML = now.toLocaleDateString('en-US', options);
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateString = now.toLocaleDateString('en-US', dateOptions);
+        document.getElementById('dateTime').textContent = `${dateString} ${timeString}`;
     }
-
-    setInterval(updateDateTime, 1000); // Update date and time every second
+    
+    // Update date and time every second
+    setInterval(updateDateTime, 1000);
+    updateDateTime(); // Initial call to display immediately
 </script>
 </body>
 </html>

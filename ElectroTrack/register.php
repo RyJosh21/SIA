@@ -1,4 +1,4 @@
-Can't create, edit, or upload … Not enough storage. Get 100 GB of storage for ₱89.00 ₱22.25/month for 2 months.
+
 <?php
 session_start();  // Start the session
 
@@ -50,53 +50,119 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Inventory System</title>
+	<link rel="icon" href="Assets/electro.png" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f4f4f9;
-            font-family: Arial, sans-serif;
-        }
-        .register-container {
-            margin-top: 100px;
-            max-width: 500px;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-        }
-        .form-title {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .register-btn {
-            background-color: #28a745;
-            color: white;
-            width: 100%;
-        }
-        .register-btn:hover {
-            background-color: #218838;
-        }
-        .back-to-login {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .error, .success {
-            text-align: center;
-        }
-        .error {
-            color: red;
-        }
-        .success {
-            color: green;
-        }
+    font-family: 'Poppins', Arial, sans-serif;
+    background-color: #f2f3f7;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Register Container Styling */
+.register-container {
+    margin-top: 100px;
+    max-width: 500px;
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Form Title Styling */
+.form-title {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #1a396e;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* Input Field Styling */
+.form-label {
+    font-weight: bold;
+    color: #1a396e;
+    margin-bottom: 5px;
+}
+
+.form-control {
+    border: 2px solid #ced4da;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #1a396e;
+    box-shadow: none;
+}
+
+select.form-select {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Register Button Styling */
+.register-btn {
+    background-color: blue;
+    color: white;
+    width: 100%;
+    padding: 10px;
+    font-size: 18px;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 5px;
+    border: none;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.register-btn:hover {
+            color: #fff;
+            background-color: #0b105c;
+  
+}
+
+/* Error and Success Message Styling */
+.error, .success {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.error {
+    color: #E23C51;
+}
+
+.success {
+    color: #28a745;
+}
+
+/* Back to Login Link Styling */
+.back-to-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-to-login a {
+    text-decoration: none;
+    color: #1a396e;
+    font-weight: 500;
+}
+
+.back-to-login a:hover {
+    color: #E23C51;
+    text-decoration: underline;
+}
     </style>
 </head>
 <body>
 
 <div class="container d-flex justify-content-center">
     <div class="register-container">
-        <h3 class="form-title">Register for Inventory System</h3>
+        <h3 class="form-title">Register for ElectroTrack(Admin/Staff)</h3>
 
         <?php if (isset($error_message)): ?>
             <p class="error"><?php echo $error_message; ?></p>

@@ -23,7 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Ensure new quantity is valid
             if ($newQuantity < 1) {
-                $errorMessage = "Quantity must be at least 1.";
+                // If quantity is less than 1, remove the order instead of updating
+                $stmt = $conn->prepare("DELETE FROM orders WHERE id = ? AND user_id = ?");
+                $stmt->execute([$orderId, $userId]);
             } else {
                 // Update the order in the database
                 $stmt = $conn->prepare("UPDATE orders SET quantity = ? WHERE id = ? AND user_id = ?");
@@ -68,10 +70,10 @@ foreach ($orders as $order) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders</title>
-    
+    <link rel="icon" href="Assets/electro.png" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
     <style>
         body {
@@ -136,6 +138,10 @@ foreach ($orders as $order) {
             min-height: 100vh;
         }
 
+        .order-item {
+            transition: transform 0.3s ease;
+        }
+
         .order {
             background-color: #E2E3E7;
             border-radius: 10px;
@@ -161,6 +167,7 @@ foreach ($orders as $order) {
             font-size: 20px;
             font-weight: bold;
             margin-top: 20px;
+            text-align: center; /* Center align total bill */
         }
 
         .logout-button {
@@ -175,12 +182,19 @@ foreach ($orders as $order) {
             color: #555;
         }
 
-        .current-time {
-            font-size: 16px;
-            color: #555;
+    
+        .date {
+            color: #031124;
+            font-size: 18px;
             text-align: right;
+            margin-left: auto;
         }
 
+        .continue-shopping {
+            display: block;
+            margin: 20px auto;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -203,7 +217,7 @@ foreach ($orders as $order) {
 
 <div class="content">
     <h1>My Orders
-    <div class="current-time" id="dateTime"></div>
+        <div class="date" id="dateTime"></div>
     </h1>
 
     <?php if (isset($successMessage)): ?>
@@ -220,75 +234,67 @@ foreach ($orders as $order) {
     <?php if (count($orders) > 0): ?>
         <div class="list-group">
             <?php foreach ($orders as $order): ?>
-                <div class="order list-group-item">
-                    <div>
-                        <strong>Product:</strong> <?php echo htmlspecialchars($order['item_name']); ?><br>
-                        <strong>Price:</strong> ₱<?php echo htmlspecialchars(number_format($order['price'], 2)); ?><br>
-                        <strong>Quantity:</strong>
-                        <div style="display: flex; align-items: center;">
-                            <button class="btn btn-secondary btn-sm" onclick="decreaseQuantity(<?php echo $order['id']; ?>)">-</button>
-                            <input type="number" id="quantity-<?php echo $order['id']; ?>" value="<?php echo htmlspecialchars($order['quantity']); ?>" min="1" style="width: 60px; margin: 0 10px;" readonly>
-                            <button class="btn btn-secondary btn-sm" onclick="increaseQuantity(<?php echo $order['id']; ?>)">+</button>
+                <div class="order-item list-group-item" id="order-item-<?php echo $order['id']; ?>">
+                    <div class="order">
+                        <div>
+                            <strong>Product:</strong> <?php echo htmlspecialchars($order['item_name']); ?><br>
+                            <strong>Price:</strong> ₱<?php echo htmlspecialchars(number_format($order['price'], 2)); ?><br>
+                            <strong>Quantity:</strong>
+                            <div style="display: flex; align-items: center;">
+                                <button class="btn btn-secondary btn-sm" onclick="decreaseQuantity(<?php echo $order['id']; ?>)">-</button>
+                                <input type="number" id="quantity-<?php echo $order['id']; ?>" value="<?php echo htmlspecialchars($order['quantity']); ?>" min="1" style="width: 60px; margin: 0 10px;" readonly>
+                                <button class="btn btn-secondary btn-sm" onclick="increaseQuantity(<?php echo $order['id']; ?>)">+</button>
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <div class="order-time">
-                            <strong>Order Date:</strong> <?php echo htmlspecialchars(date('F j, Y, g:i A', strtotime($order['created_at']))); ?>
-                        </div>
+                        <div class="order-time"><?php echo htmlspecialchars($order['created_at']); ?></div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
-        <div class="total-bill">
-            Total Bill: ₱<?php echo htmlspecialchars(number_format($totalBill, 2)); ?>
+		 <div class="continue-shopping">
+            <a href="customer_dashboard.php" class="btn btn-secondary">Add parts</a>
         </div>
-        <form action="customer_checkout.php" method="post" style="margin-top: 20px;">
-            <input type="hidden" name="total_bill" value="<?php echo htmlspecialchars($totalBill); ?>">
-            <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($userId); ?>">
-            <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
-        </form>
+
+        <div class="total-bill" style="text-align: right; margin-top: 20px;">
+            <strong>Total Bill:</strong> ₱<?php echo htmlspecialchars(number_format($totalBill, 2)); ?>
+			
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <form action="customer_checkout.php" method="post">
+                <input type="hidden" name="total_bill" value="<?php echo htmlspecialchars($totalBill); ?>">
+                <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($userId); ?>">
+                <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
+            </form>
+        </div>
+
     <?php else: ?>
         <p>No orders found.</p>
     <?php endif; ?>
 </div>
 
 <script>
-    function increaseQuantity(orderId) {
-        const quantityInput = document.getElementById('quantity-' + orderId);
-        let quantity = parseInt(quantityInput.value);
-        quantityInput.value = quantity + 1;
-        updateOrderQuantity(orderId, quantity + 1);
-    }
+    let touchstartX = 0;
+    let touchendX = 0;
 
-    function decreaseQuantity(orderId) {
-        const quantityInput = document.getElementById('quantity-' + orderId);
-        let quantity = parseInt(quantityInput.value);
-        
-        if (quantity > 1) {
-            quantityInput.value = quantity - 1;
-            updateOrderQuantity(orderId, quantity - 1);
-        } else if (quantity === 1) {
-            // Remove the order when quantity reaches zero
+    function checkSwipe(orderId) {
+        if (touchendX < touchstartX) {
+            // Swipe left
             removeOrder(orderId);
         }
     }
 
-    function updateOrderQuantity(orderId, newQuantity) {
-        const formData = new FormData();
-        formData.append('order_id', orderId);
-        formData.append('new_quantity', newQuantity);
-        formData.append('update_order', 'update');
+    const orderItems = document.querySelectorAll('.order-item');
 
-        fetch('orders.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-            location.reload();
-        })
-        .catch(error => console.error('Error:', error));
-    }
+    orderItems.forEach(item => {
+        item.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        });
+
+        item.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            checkSwipe(item.id.split('-')[2]); // Get order ID from the item ID
+        });
+    });
 
     function removeOrder(orderId) {
         const formData = new FormData();
@@ -301,21 +307,68 @@ foreach ($orders as $order) {
         })
         .then(response => response.text())
         .then(data => {
-            location.reload();
+            // Remove the order item from the DOM
+            const orderItem = document.getElementById('order-item-' + orderId);
+            if (orderItem) {
+                orderItem.remove();
+            }
+            location.reload(); // Refresh the page to update the order list
         })
         .catch(error => console.error('Error:', error));
     }
 
-    // Function to display current date and time
-    function updateDateTime() {
-        const now = new Date();
-        document.getElementById('dateTime').innerHTML = now.toLocaleString();
+    function increaseQuantity(orderId) {
+        const quantityInput = document.getElementById('quantity-' + orderId);
+        quantityInput.value = parseInt(quantityInput.value) + 1;
+
+        // Optionally update the order in the database
+        updateOrder(orderId, quantityInput.value);
     }
 
-    // Update time every second
+    function decreaseQuantity(orderId) {
+        const quantityInput = document.getElementById('quantity-' + orderId);
+        if (quantityInput.value > 1) {
+            quantityInput.value = parseInt(quantityInput.value) - 1;
+
+            // Optionally update the order in the database
+            updateOrder(orderId, quantityInput.value);
+        } else {
+            // If quantity is zero, remove the order
+            removeOrder(orderId);
+        }
+    }
+
+    function updateOrder(orderId, newQuantity) {
+        const formData = new FormData();
+        formData.append('order_id', orderId);
+        formData.append('new_quantity', newQuantity);
+        formData.append('update_order', 'update');
+
+        fetch('orders.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+	function updateDateTime() {
+        const now = new Date();
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateString = now.toLocaleDateString('en-US', dateOptions);
+        document.getElementById('dateTime').textContent = `${dateString} ${timeString}`;
+    }
+    
+    // Update date and time every second
     setInterval(updateDateTime, 1000);
-    updateDateTime();
+    updateDateTime(); // Initial call to display immediately
 </script>
 
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -117,6 +117,8 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Dashboard</title>
+	
+	<link rel="icon" href="Assets/electro.png" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -184,7 +186,7 @@ $conn->close();
 
         .content {
             margin-left: 300px;
-            padding: 30px;
+            padding: 20px;
             background-color: #fff;
             min-height: 100vh;
         }
@@ -201,7 +203,9 @@ $conn->close();
         }
 
         label {
+			margin-top: 30px;
             margin-right: 10px;
+			margin-bottom: 30px;
             font-weight: 600;
             color: #1a396e;
         }
@@ -235,7 +239,7 @@ $conn->close();
         .item-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            grid-gap: 20px;
+            grid-gap: 30px;
         }
 
         .item {
@@ -262,18 +266,18 @@ $conn->close();
             color: #555;
         }
 
-        h1 {
+          h1 {
             color: #555;
             font-size: 40px;
             font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .current-time {
-            font-size: 16px;
-            color: #555;
+         .date {
+            color: #031124;
+            font-size: 18px;
+			 font-weight: bold;
+            text-align: right;
+            margin-left: auto;
         }
 
         @media (max-width: 768px) {
@@ -290,10 +294,9 @@ $conn->close();
 <body>
 
 <div class="sidebar">
-    <h2>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?></h2>
+<h2>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?></h2>
     <img src="Assets/ADMIN.png" alt="Profile Picture" class="profile-pic" style="width: 100px; height: 100px; border-radius: 50%; margin: 0 auto; display: block;">
     
-    <!-- Active Link Class Logic -->
     <a href="customer_dashboard.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'customer_dashboard.php') ? 'active' : ''; ?>">
         <i class="fas fa-home"></i> Home
     </a>
@@ -305,11 +308,11 @@ $conn->close();
         <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Log Out</a>
     </div>
 </div>
+
 <div class="content">
     <h1>Available Products
-        <span class="current-time"><?php echo date('l, F j, Y'); ?></span>
     </h1>
-
+ <div class="date" id="dateTime"></div>
     <div>
         <label for="category">Filter by Category:</label>
         <select id="category" onchange="filterProducts()">
@@ -375,6 +378,18 @@ function sortProducts() {
     // Navigate to the updated URL
     window.location.href = url.toString();
 }
+
+	function updateDateTime() {
+        const now = new Date();
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateString = now.toLocaleDateString('en-US', dateOptions);
+        document.getElementById('dateTime').textContent = `${dateString} ${timeString}`;
+    }
+    
+    // Update date and time every second
+    setInterval(updateDateTime, 1000);
+    updateDateTime(); // Initial call to display immediately
 </script>
 
 </body>

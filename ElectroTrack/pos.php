@@ -56,6 +56,7 @@ $items = $pdo->query("SELECT * FROM inventory")->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <title>Point of Sale</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="Assets/electro.png" type="image/x-icon">
     <!-- Include Bootstrap CSS if necessary -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -160,7 +161,7 @@ $items = $pdo->query("SELECT * FROM inventory")->fetchAll(PDO::FETCH_ASSOC);
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-			margin-top: 50px;
+			margin-top: 20px;
 			margin-left: 30px;
 			margin-right: 20px;
             /* border-bottom: 2px solid #dee2e6;
@@ -281,7 +282,7 @@ $items = $pdo->query("SELECT * FROM inventory")->fetchAll(PDO::FETCH_ASSOC);
         <img src="Assets/SALES HISTORY.png" alt="Inventory Icon" 
         style="width: 100%; height: 100%; border-radius: 50%;"></div> Sales History
     </a>
-    <a href="delete.php">
+	<a href="delete.php">
         <div class="mini-circle-photo">
         <img src="Assets/DELETE.png" alt="Inventory Icon" 
         style="width: 100%; height: 100%; border-radius: 50%;"></div> Delete Item
@@ -340,7 +341,7 @@ $items = $pdo->query("SELECT * FROM inventory")->fetchAll(PDO::FETCH_ASSOC);
         }
     }
 
-    function updateDateTime() {
+      function updateDateTime() {
         const now = new Date();
         const options = { 
             year: 'numeric', 

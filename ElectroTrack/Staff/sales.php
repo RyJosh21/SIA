@@ -127,13 +127,6 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'true') {
             font-weight: bold;
             margin: 0;
         }
-	.date {
-			color: #031124;
-			font-size: 18px;
-			text-align: right;
-			margin-left: auto;
-			margin-right: 50px;
-		}
 
         .table {
             margin-top: 20px;
@@ -211,7 +204,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'true') {
     <div class="circle-photo">
         <img src="Assets/ADMIN.png" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%;">
     </div> <!-- Circular photo placeholder -->
-    <h2>Admin</h2>
+    <h2>Staff</h2>
     
      <!-- Add circle placeholder beside each link -->
     <a href="index.php">
@@ -234,11 +227,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'true') {
         <img src="Assets/SALES HISTORY.png" alt="Inventory Icon" 
         style="width: 100%; height: 100%; border-radius: 50%;"></div> Sales History
     </a>
-   <a href="delete.php">
-        <div class="mini-circle-photo">
-        <img src="Assets/DELETE.png" alt="Inventory Icon" 
-        style="width: 100%; height: 100%; border-radius: 50%;"></div> Delete Item
-    </a>
+
     <a href="logout.php" class="logout-link">
         <div class="mini-circle-photo">
         <img src="Assets/LOGOUT.png" alt="Inventory Icon" 

@@ -64,6 +64,7 @@ $yearlySalesJSON = json_encode($yearlySalesData);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Dashboard</title>
+	<link rel="icon" href="Assets/electro.png" type="image/x-icon">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
@@ -114,6 +115,26 @@ $yearlySalesJSON = json_encode($yearlySalesData);
             background-color: #E23C51;
             padding-left: 25px;
             color: #FAFBFF;
+        }
+		 .logout-link {
+            position: absolute;
+            bottom: 20px; /* Position it 20px from the bottom */
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 12px 0;
+            background-color: #1a396e;
+            color: #FAFBFF;
+            font-size: 18px;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+            text-decoration: none;
+        }
+
+        .logout-link:hover {
+            background-color: #E23C51;
+            color: #FAFBFF;
+            padding-left: 0;
         }
 		 /* Hamburger menu styles */
         .hamburger {
@@ -298,9 +319,10 @@ $yearlySalesJSON = json_encode($yearlySalesData);
         <div class="mini-circle-photo">
         <img src="Assets/SALES HISTORY.png" alt="Sales History Icon"></div> Sales History
     </a>
-    <a href="delete.php">
+	<a href="logout.php" class="logout-link">
         <div class="mini-circle-photo">
-        <img src="Assets/DELETE.png" alt="Delete Icon"></div> Delete
+        <img src="Assets/LOGOUT.png" alt="Inventory Icon" 
+        style="width: 100%; height: 100%; border-radius: 50%;"></div> Logout
     </a>
 </div>
 
@@ -308,7 +330,7 @@ $yearlySalesJSON = json_encode($yearlySalesData);
 <div class="content">
     <div class="dashboard-container">
         <h2 class="dashboard">Dashboard</h2>
-        <p class="date"><?php echo date('F d, Y'); ?></p>
+		<div class="date" id="dateTime"></div>
     </div>
 
     <div class="summary-container">
@@ -389,6 +411,18 @@ $yearlySalesJSON = json_encode($yearlySalesData);
 
     // Show daily data by default
     showChart('daily');
+	
+	function updateDateTime() {
+        const now = new Date();
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateString = now.toLocaleDateString('en-US', dateOptions);
+        document.getElementById('dateTime').textContent = `${dateString} ${timeString}`;
+    }
+    
+    // Update date and time every second
+    setInterval(updateDateTime, 1000);
+    updateDateTime(); // Initial call to display immediately
 </script>
 
 </body>

@@ -66,6 +66,7 @@ $yearlySalesJSON = json_encode($yearlySalesData);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Menu</title>
+	<link rel="icon" href="Assets/electro.png" type="image/x-icon">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
@@ -174,13 +175,14 @@ $yearlySalesJSON = json_encode($yearlySalesData);
             margin: 0;
         }
 
-        .date {
+       .date {
             color: #031124;
             font-size: 18px;
             text-align: right;
             margin-left: auto;
             margin-right: 50px;
         }
+
 
         .summary-container {
             background-color: #F2F3F7;
@@ -226,7 +228,7 @@ $yearlySalesJSON = json_encode($yearlySalesData);
         }
 
      /* Hamburger menu styles */
-        .hamburger {
+         .hamburger {
             display: none;
             font-size: 30px;
             cursor: pointer;
@@ -253,29 +255,27 @@ $yearlySalesJSON = json_encode($yearlySalesData);
         }
 
         /* Circle photo and mini circle photo */
-        .circle-photo {
-            width: 120px; 
-            height: 120px;
-            margin: 0 auto 20px auto;
-        }
-
-        .circle-photo img {
-            width: 100%; 
-            height: 100%; 
-            border-radius: 50%; 
-        }
-
         .mini-circle-photo {
-            width: 30px;
-            height: 30px;
-            margin-right: 10px; 
-            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background-color: transparent;
+            border-radius: 50%;
+            margin-right: 20px; /* Spacing between the circle and the text */
+            margin-left: 20px;
         }
 
-        .mini-circle-photo img {
-            width: 100%; 
-            height: 100%;
+        .circle-photo {
+            width: 100px;
+            height: 100px;
+            background-color: #d9d9d9;
             border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FAFBFF;
+            font-size: 20px;
+            margin: 20px auto;
+            text-align: center;
         }
 
         /* Graph container and buttons */
@@ -320,33 +320,40 @@ $yearlySalesJSON = json_encode($yearlySalesData);
 
 <div class="sidebar" id="sidebar">
     <div class="circle-photo">
-        <img src="Assets/ADMIN.png" alt="Profile">
-    </div>
+        <img src="Assets/ADMIN.png" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%;">
+    </div> <!-- Circular photo placeholder -->
     <h2>Admin</h2>
     
+     <!-- Add circle placeholder beside each link -->
     <a href="index.php">
         <div class="mini-circle-photo">
-        <img src="Assets/HOME.png" alt="Home Icon"></div> Home
+        <img src="Assets/HOME.png" alt="Inventory Icon" 
+        style="width: 100%; height: 100%; border-radius: 50%;"></div> Home
     </a>
     <a href="inventory.php">
         <div class="mini-circle-photo">
-        <img src="Assets/INVENTORY.png" alt="Inventory Icon"></div> Manage Inventory
+        <img src="Assets/INVENTORY.png" alt="Inventory Icon" 
+        style="width: 100%; height: 100%; border-radius: 50%;"></div> Manage Inventory
     </a>
     <a href="pos.php">
         <div class="mini-circle-photo">
-        <img src="Assets/POS.png" alt="POS Icon"></div> Point of Sale
+        <img src="Assets/POS.png" alt="Inventory Icon" 
+        style="width: 100%; height: 100%; border-radius: 50%;"></div> Point of Sale
     </a>
     <a href="sales.php">
         <div class="mini-circle-photo">
-        <img src="Assets/SALES HISTORY.png" alt="Sales History Icon"></div> Sales History
+        <img src="Assets/SALES HISTORY.png" alt="Inventory Icon" 
+        style="width: 100%; height: 100%; border-radius: 50%;"></div> Sales History
     </a>
     <a href="delete.php">
         <div class="mini-circle-photo">
-        <img src="Assets/DELETE.png" alt="Delete Icon"></div> Delete Item
+        <img src="Assets/DELETE.png" alt="Inventory Icon" 
+        style="width: 100%; height: 100%; border-radius: 50%;"></div> Delete Item
     </a>
     <a href="logout.php" class="logout-link">
         <div class="mini-circle-photo">
-        <img src="Assets/LOGOUT.png" alt="Logout Icon"></div> Logout
+        <img src="Assets/LOGOUT.png" alt="Inventory Icon" 
+        style="width: 100%; height: 100%; border-radius: 50%;"></div> Logout
     </a>
 </div>
 
@@ -460,18 +467,20 @@ function updateChart(period) {
 updateChart('daily');
 
 // DateTime updater
-function updateDateTime() {
-    const now = new Date();
-    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const dateString = now.toLocaleDateString('en-US', dateOptions);
-    document.getElementById('dateTime').textContent = `${dateString} ${timeString}`;
-}
+  function updateDateTime() {
+        const now = new Date();
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
+        };
+        document.getElementById('dateTime').innerHTML = now.toLocaleDateString('en-US', options);
+    }
 
-// Update date and time every second
-setInterval(updateDateTime, 1000);
-updateDateTime();
-
+    setInterval(updateDateTime, 1000); // Update date and time every second
 function toggleSidebar() {
     var sidebar = document.getElementById("sidebar");
     if (sidebar.style.width === "300px") {

@@ -16,6 +16,9 @@ if (!isset($_SESSION['username'])) {
 $username = $_SESSION['username'];  // Get the username from session
 $userId = $_SESSION['user_id'];
 
+// Encryption key for sensitive data (must be kept secure)
+$encryptionKey = 'your-secure-encryption-key'; // Use a strong, secure key
+
 // Initialize totalBill and purchase flags
 $totalBill = 0;
 $purchaseComplete = false;
@@ -32,7 +35,7 @@ $receiptDetails = [];
 foreach ($orders as $order) {
     $productId = $order['product_id'];
     $quantity = $order['quantity'];
-    $productName = $order['item_name'];  // Assuming your inventory has item_name
+    $productName = $order['item_name'];
     $price = $order['price'];
 
     // Calculate total bill
@@ -55,15 +58,47 @@ $stmt = $conn->prepare("SELECT email FROM customers WHERE id = ?");
 $stmt->execute([$userId]);
 $savedEmail = $stmt->fetchColumn();
 
+// Encrypt account number for secure storage
+function encryptAccountNumber($accountNumber, $encryptionKey) {
+    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
+    $encrypted = openssl_encrypt($accountNumber, 'aes-256-cbc', $encryptionKey, 0, $iv);
+    return base64_encode($encrypted . '::' . $iv);  // Store both encrypted data and IV
+}
+
+// Decrypt account number for display
+function decryptAccountNumber($encrypted, $encryptionKey) {
+    list($encryptedData, $iv) = explode('::', base64_decode($encrypted), 2);
+    return openssl_decrypt($encryptedData, 'aes-256-cbc', $encryptionKey, 0, $iv);
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'] ?? '';
-    // Use saved email from the database directly if no email is provided
     $email = !empty($_POST['email']) ? $_POST['email'] : $savedEmail;
+    $address = $_POST['address'] ?? '';
+    $accountNumber = $_POST['account_number'] ?? '';
 
-    // Check if the email exists and is valid for invoice sending
-    if (!$email) {
-        echo "<p class='alert alert-danger'>No email found for the transaction. Please provide a valid email address.</p>";
+    // Remove dashes for validation
+       $cleanedAccountNumber = str_replace('-', '', $accountNumber);
+
+    // Validate the cleaned account number
+    if (!is_numeric($cleanedAccountNumber) || strlen($cleanedAccountNumber) < 10) {
+        echo "<p class='alert alert-danger'>Invalid account number. Please provide a valid account number.</p>";
+    } else {
+        // Further processing can happen here (e.g., saving to a database)
+        echo "<p class='alert alert-success'>Account number is valid: $cleanedAccountNumber</p>";
+    }
+} else {
+    // Handle the case where the form has not been submitted
+    echo "<p>Please fill out the form.</p>";
+}
+
+    // Encrypt the account number
+    $encryptedAccountNumber = encryptAccountNumber($accountNumber, $encryptionKey);
+
+    // Check if all required fields are filled
+    if (!$email || !$address || !$accountNumber) {
+        echo "<p class='alert alert-danger'>Please fill out all required fields, including address and account number.</p>";
     } else {
         if (isset($_POST['confirm'])) {
             // Process payment
@@ -75,10 +110,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $quantity = $order['quantity'];
 
                     // Insert into customer_purchase
-                    $stmt = $conn->prepare("INSERT INTO customer_purchase (user_id, product_id, quantity, total, name, email) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt->execute([$userId, $productId, $quantity, $totalBill, $name, $email]);
+                    $stmt = $conn->prepare("INSERT INTO customer_purchase (user_id, product_id, quantity, total, name, email, address, account_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$userId, $productId, $quantity, $totalBill, $name, $email, $address, $encryptedAccountNumber]);
 
-                    // Check current quantity
+                    // Check current quantity in the inventory
                     $stmt = $conn->prepare("SELECT quantity FROM inventory WHERE id = ?");
                     $stmt->execute([$productId]);
                     $currentQuantity = $stmt->fetchColumn();
@@ -99,14 +134,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $conn->commit();
                 $purchaseComplete = true;
 
-                // Send the transaction invoice to the provided or saved email
+                // Send the transaction invoice via email
                 $mail = new PHPMailer(true);
-                $invoiceSent = false; // Initialize invoiceSent flag
+                $invoiceSent = false;
 
                 try {
                     // Server settings
                     $mail->isSMTP();
-                    $mail->Host = 'smtp.gmail.com'; // Gmail SMTP server
+                    $mail->Host = 'smtp.gmail.com';
                     $mail->SMTPAuth = true;
                     $mail->Username = 'uvomtrjoshua@gmail.com'; // Your Gmail email
                     $mail->Password = 'koib skke gnxz dywq'; // Your generated App Password
@@ -114,17 +149,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mail->Port = 587;
 
                     // Recipients
-                    $mail->setFrom('uvomtrjoshua@gmail.com', 'ElectroTrack'); // Updated shop name
+                    $mail->setFrom('uvomtrjoshua@gmail.com', 'ElectroTrack');
                     $mail->addAddress($email, $name);
 
                     // Prepare email content
                     $body = '<h1>Thank you for your purchase at ElectroTrack!</h1>';
                     $body .= '<p>Your total bill is: <strong>' . htmlspecialchars($totalBill) . '</strong></p>';
+                    $body .= '<p> Address: ' . htmlspecialchars($address) . '</p>';
                     $body .= '<h2>Order Details:</h2>';
                     $body .= '<table border="1" cellpadding="10" style="border-collapse:collapse; width:100%;">';
-                    $body .= '<tr><th>Product Name</th><th>Quantity</th><th>Price</th><th>Line Total</th></tr>';
-                    
-                    // Add each item to the email
+                    $body .= '<tr><th>Product Name</th><th>Quantity</th><th>Price</th><th>SubTotal</th></tr>';
+
                     foreach ($receiptDetails as $item) {
                         $body .= '<tr>';
                         $body .= '<td>' . htmlspecialchars($item['name']) . '</td>';
@@ -133,18 +168,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $body .= '<td>' . htmlspecialchars($item['lineTotal']) . '</td>';
                         $body .= '</tr>';
                     }
-                    
+
                     $body .= '</table>';
-                    
+
                     // Content
                     $mail->isHTML(true);
-                    $mail->Subject = 'Purchase Invoice from ElectroTrack'; // Updated subject line
-                    $mail->Body    = $body; // Use the built HTML body
-                    $mail->AltBody = strip_tags($body); // Plain text version
+                    $mail->Subject = 'Purchase Invoice from ElectroTrack';
+                    $mail->Body    = $body;
+                    $mail->AltBody = strip_tags($body);
 
                     $mail->send();
-                    $invoiceSent = true; // Set flag to true if email is sent successfully
-
+                    $invoiceSent = true;
                 } catch (Exception $e) {
                     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
                 }
@@ -165,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $confirmPurchase = true;
         }
     }
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -174,74 +208,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - ElectroTrack</title>
+    <link rel="icon" href="Assets/electro.png" type="image/x-icon">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
-        body {
-            font-family: 'Poppins', Arial, sans-serif;
-            background-color: #f2f3f7;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            color: #1a396e;
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .btn-primary {
-            background-color: #3468c0;
-            color: #fff;
-        }
-        .btn-secondary {
-            background-color: #28a745;
-            color: #fff;
-        }
-        .alert {
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .alert-warning {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .alert-info {
-            background-color: #cce5ff;
-            color: #004085;
-        }
+        /* General container styling */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Form input fields */
+.form-group label {
+    font-weight: bold;
+    color: #1a396e;
+    margin-bottom: 5px;
+}
+
+.form-control {
+    border: 2px solid #ced4da;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #1a396e;
+    box-shadow: none;
+}
+
+/* Submit and Confirm buttons */
+.btn-primary, .btn-success {
+    background-color: #1a396e;
+    border-color: #1a396e;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-primary:hover, .btn-success:hover {
+    background-color: #143258;
+    border-color: #143258;
+}
+
+.btn-primary:focus, .btn-success:focus {
+    box-shadow: none;
+}
+
+/* Alerts styling */
+.alert {
+    font-size: 1.1rem;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-color: #ffeeba;
+}
+
+/* Receipt section */
+h1, h2 {
+    color: #1a396e;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #1a396e;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f1f1f1;
+}
+
+.btn-print {
+    background-color: #1a396e;
+    color: #fff;
+    font-size: 1rem;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-print:hover {
+    background-color: #143258;
+}
+
+/* Small customizations for mobile */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        font-size: 0.9rem;
+    }
+
+    .btn-primary, .btn-success {
+        font-size: 0.9rem;
+    }
+}
+
     </style>
     <script>
-       
     function printReceipt() {
         let receiptContent = `
             <h1 style="text-align:center;">Receipt from ElectroTrack</h1>
-            <p style="text-align:center;">Thank you for your purchase, ${<?php echo json_encode($username); ?>}!</p>
-            <p style="text-align:center;">Your total bill is: <strong>${<?php echo json_encode($totalBill); ?>}</strong></p>
+            <img src="Assets/electro.png" alt="ElectroTrack Logo" style="float:right; width:100px; height:auto; margin-bottom: 20px;">
+            <p style="text-align:center;">Thank you for your purchase, <?php echo htmlspecialchars($username); ?>!</p>
+			 <p style="text-align:center;"> Address: <?php echo htmlspecialchars($_POST['address']); ?></p>
+            <p style="text-align:center;">Account Number: ****-****-<?php echo substr(htmlspecialchars($_POST['account_number']), -4); ?></p>
             <h2 style="border-bottom: 2px solid #1a396e;">Order Details:</h2>
             <table border="1" cellpadding="10" style="border-collapse:collapse; width:100%; margin: auto;">
                 <tr>
-                    <th style="text-align:left;">Product Name</th>
-                    <th style="text-align:left;">Quantity</th>
-                    <th style="text-align:left;">Price</th>
-                    <th style="text-align:left;">Line Total</th>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>SubTotal</th>
                 </tr>
                 <?php foreach ($receiptDetails as $item): ?>
                     <tr>
@@ -252,60 +373,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </tr>
                 <?php endforeach; ?>
             </table>
-            <h3 style="border-top: 2px solid #1a396e; margin-top: 20px; text-align:center;">Thank you for choosing ElectroTrack!</h3>
-            <p style="text-align:center;">We appreciate your business and hope you enjoy your purchase.</p>
+            <p style="text-align:right;">Total Bill: <?php echo htmlspecialchars($totalBill); ?></p>
         `;
-        let newWindow = window.open('', '', 'height=600,width=800');
-        newWindow.document.write(receiptContent);
-        newWindow.document.close();
-        newWindow.print();
+        let printWindow = window.open('', '', 'height=600,width=800');
+        printWindow.document.write('<html><head><title>Receipt</title>');
+        printWindow.document.write('</head><body >');
+        printWindow.document.write(receiptContent);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
     }
-</script>
+    </script>
 </head>
 <body>
-    <div class="container">
-        <h2>Checkout</h2>
-        
+    <div class="container mt-5">
+        <h1>Checkout - ElectroTrack</h1>
+		  <link rel="icon" href="Assets/electro.png" type="image/x-icon">
         <?php if ($purchaseComplete): ?>
-            <p class='alert alert-success'>Thank you for your purchase, <?php echo htmlspecialchars($username); ?>! Your purchase was completed successfully!</p>
-            <button onclick="printReceipt()" class="btn btn-secondary">Print Receipt</button>
-            <a href="customer_dashboard.php" class="btn btn-primary" style="margin-left: 10px;">Shop Again</a> <!-- Added Shop Again button -->
+            <div class="alert alert-success">
+                <h2>Thank you for your purchase! <?php echo htmlspecialchars($username); ?></h2>
+          
+			 <button onclick="printReceipt()" class="btn btn-primary"><i class="fas fa-print" style="text-align=right"></i></button>
+			  <a href="customer_dashboard.php" class="btn btn-primary" style="margin-left: 10px;">
+                <i class="fas fa-shopping-cart"></i> Shop Again </a>
+				  </div>
+            </div>
         <?php elseif ($confirmPurchase): ?>
-            <p class='alert alert-warning'>Please confirm your purchase details:</p>
-            <form method="POST">
+            <div class="alert alert-warning">
+                <h2>Confirm Your Purchase! <?php echo htmlspecialchars($username); ?></h2>
+                <p>Please confirm your details below before completing the purchase:</p>
+                <ul>
+                    <li><strong>Name:</strong> <?php echo htmlspecialchars($name); ?></li>
+                    <li><strong>Email:</strong> <?php echo htmlspecialchars($email); ?></li>
+                    <li><strong> Address:</strong> <?php echo htmlspecialchars($address); ?></li>
+                    <li><strong>Account Number:</strong>  ****-****-<?php echo substr(htmlspecialchars($accountNumber), -4); ?></li> <!-- Masked -->
+                </ul>
+                <form method="post">
+                    <input type="hidden" name="name" value="<?php echo htmlspecialchars($name); ?>">
+                    <input type="hidden" name="email" value="<?php echo htmlspecialchars($email); ?>">
+                    <input type="hidden" name="address" value="<?php echo htmlspecialchars($address); ?>">
+                    <input type="hidden" name="account_number" value="<?php echo htmlspecialchars($accountNumber); ?>">
+                    <button type="submit" name="confirm" class="btn btn-success">Confirm and Pay</button>
+                </form>
+            </div>
+        <?php else: ?>
+            <form method="post" action="">
                 <div class="form-group">
-                    <label for="name">Name:</label>
-                    <input type="text" class="form-control" id="name" name="name" value="<?php echo htmlspecialchars($username); ?>" required>
+                    <label for="name">Full Name:</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email:</label>
+                    <label for="email">Email Address:</label>
                     <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($savedEmail); ?>" required>
                 </div>
-                <button type="submit" name="confirm" class="btn btn-primary">Confirm Purchase</button>
-            </form>
-        <?php else: ?>
-            <p class='alert alert-info'>You have the following items in your cart:</p>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Product Name</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($receiptDetails as $item): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($item['name']); ?></td>
-                            <td><?php echo htmlspecialchars($item['quantity']); ?></td>
-                            <td><?php echo htmlspecialchars($item['price']); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-            <p><strong>Total Bill: </strong><?php echo htmlspecialchars($totalBill); ?></p>
-            <form method="POST">
-                <button type="submit" name="confirm" class="btn btn-primary">Proceed to Payment</button>
+                <div class="form-group">
+        <label for="address">Address:</label>
+        <textarea class="form-control" id="address" name="address" rows="3" required placeholder="Enter your address"></textarea>
+    </div>
+<div class="form-group">
+    <label for="account_number">Account Number:</label>
+    <input type="text" class="form-control" id="account_number" name="account_number" required minlength="8" maxlength="14" pattern="[\d\-]+" placeholder="8-12 digits(e.g., 2019-2010-1020)">
+    <small class="form-text text-muted">Your account number should be in the format XXXX-XXXX-XXXX.</small>
+</div>
+                <button type="submit" class="btn btn-primary">Proceed to Confirm</button>
             </form>
         <?php endif; ?>
     </div>

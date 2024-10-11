@@ -28,38 +28,129 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register as Customer</title>
+    <title>Register as Customer - ElectroTrack</title>
+    <link rel="icon" href="Assets/electro.png" type="image/x-icon">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
+         body {
+			font-family: 'Poppins', Arial, sans-serif;
+			background-color: #f2f3f7;
+			color: #333;
+			margin: 0;
+			padding: 0;
+		}
         .container {
-            margin-top: 50px;
+            max-width: 500px;
+            margin-top: 100px;
+            width: 100%;
+            padding: 30px;
+            background-color: #f8f9fa;
+			
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .error {
+	
+
+.title {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #1a396e;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* Input Field Styling */
+.form-label {
+    font-weight: bold;
+    color: #1a396e;
+    margin-bottom: 5px;
+}
+
+.form-control {
+    border: 2px solid #ced4da;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #1a396e;
+    box-shadow: none;
+}
+  .error {
             color: red;
         }
+     
+       .btn {
+    background-color: blue;
+    color: white;
+    width: 100%;
+    padding: 10px;
+    font-size: 18px;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 5px;
+    border: none;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.btn:hover {
+            color: #fff;
+            background-color: #0b105c;
+  
+}
+		.back-to-login {
+			text-align: center;
+			margin-top: 20px;
+        }		
+
+		.back-to-login a {
+			text-decoration: none;
+			color: #1a396e;
+			font-weight: 500;
+		}
+
+		.back-to-login a:hover {
+			color: #E23C51;
+			text-decoration: underline;
+		}
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Register as Customer</h2>
+<div class="container mt-5">
+    <h2 class="title">Register as Customer</h2>
     <?php if ($error_message): ?>
-        <p class="text-danger"><?php echo htmlspecialchars($error_message); ?></p>
+        <div class="alert alert-danger">
+            <?php echo htmlspecialchars($error_message); ?>
+        </div>
     <?php endif; ?>
     <form method="POST">
-        <input type="text" name="name" placeholder="Full Name" required class="form-control mb-3">
-        <input type="text" name="username" placeholder="Username" required class="form-control mb-3">
-        <input type="email" name="email" placeholder="Email" required class="form-control mb-3">
-        <input type="password" name="password" placeholder="Password" required class="form-control mb-3">
-        <button type="submit" class="btn btn-primary">Register</button>
-        <a href="login.php" class="btn btn-link">Login</a>
+        <div class="form-group">
+    <label for="name" class="form-label">Full Name</label>
+    <input type="text" name="name" id="name" placeholder="Full Name" required class="form-control">
+</div>
+<div class="form-group">
+    <label for="username" class="form-label">Username</label>
+    <input type="text" name="username" id="username" placeholder="Username" required class="form-control">
+</div>
+<div class="form-group">
+    <label for="email" class="form-label">Email</label>
+    <input type="email" name="email" id="email" placeholder="Email" required class="form-control">
+</div>
+<div class="form-group">
+    <label for="password" class="form-label">Password</label>
+    <input type="password" name="password" id="password" placeholder="Password" required class="form-control">
+</div>
+
+        <button type="submit" class="btn btn-primary mt-3 w-100">Register</button>
+         <div class="back-to-login">
+            <a href="login.php">Back to Login</a>
+        </div>
     </form>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
