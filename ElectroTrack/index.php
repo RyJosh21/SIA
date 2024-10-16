@@ -16,41 +16,75 @@ $stmt = $pdo->query("SELECT SUM(quantity) AS total_quantity FROM inventory");
 $totalQuantity = $stmt->fetchColumn();
 
 // Query to get total sales
-$stmt = $pdo->query("SELECT SUM(total) AS total_sales FROM customer_purchase"); // Adjust table/column names if necessary
-$totalSales = $stmt->fetchColumn();
+  $stmt = $pdo->query("
+        SELECT COALESCE(SUM(total), 0) AS total FROM customer_purchase
+        UNION ALL
+        SELECT COALESCE(SUM(total_price), 0) FROM sales
+    ");
+    $totals = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+    $totalSales = array_sum($totals);
+    
+
 
 // Query to get available products
 $stmt = $pdo->query("SELECT COUNT(*) AS available_products FROM inventory WHERE quantity > 0");
 $availableProducts = $stmt->fetchColumn();
 
-// Query sales data for different periods (using created_at for timestamps)
-
-// Daily Sales (past 7 days)
-$dailySalesQuery = $pdo->query("SELECT DATE(created_at) AS date, SUM(total) AS total_sales 
-                                FROM customer_purchase 
-                                WHERE created_at >= CURDATE() - INTERVAL 7 DAY 
-                                GROUP BY DATE(created_at)");
+// Daily Sales (last 7 days)
+$dailySalesQuery = $pdo->query("
+    SELECT DATE(created_at) AS date, SUM(total) AS total_sales 
+    FROM (
+        SELECT created_at, total FROM customer_purchase 
+        WHERE created_at >= CURDATE() - INTERVAL 7 DAY
+        UNION ALL
+        SELECT created_at, total_price AS total FROM sales 
+        WHERE created_at >= CURDATE() - INTERVAL 7 DAY
+    ) AS combined_sales
+    GROUP BY DATE(created_at)
+");
 $dailySalesData = $dailySalesQuery->fetchAll(PDO::FETCH_ASSOC);
 
 // Weekly Sales (last 4 weeks)
-$weeklySalesQuery = $pdo->query("SELECT WEEK(created_at) AS week, SUM(total) AS total_sales 
-                                FROM customer_purchase 
-                                WHERE created_at >= CURDATE() - INTERVAL 28 DAY 
-                                GROUP BY WEEK(created_at)");
+$weeklySalesQuery = $pdo->query("
+    SELECT WEEK(created_at) AS week, SUM(total) AS total_sales 
+    FROM (
+        SELECT created_at, total FROM customer_purchase 
+        WHERE created_at >= CURDATE() - INTERVAL 28 DAY
+        UNION ALL
+        SELECT created_at, total_price AS total FROM sales 
+        WHERE created_at >= CURDATE() - INTERVAL 28 DAY
+    ) AS combined_sales
+    GROUP BY WEEK(created_at)
+");
 $weeklySalesData = $weeklySalesQuery->fetchAll(PDO::FETCH_ASSOC);
 
 // Monthly Sales (last 12 months)
-$monthlySalesQuery = $pdo->query("SELECT MONTHNAME(created_at) AS month, SUM(total) AS total_sales 
-                                  FROM customer_purchase 
-                                  WHERE created_at >= CURDATE() - INTERVAL 1 YEAR 
-                                  GROUP BY MONTH(created_at)");
+$monthlySalesQuery = $pdo->query("
+    SELECT MONTHNAME(created_at) AS month, SUM(total) AS total_sales 
+    FROM (
+        SELECT created_at, total FROM customer_purchase 
+        WHERE created_at >= CURDATE() - INTERVAL 1 YEAR
+        UNION ALL
+        SELECT created_at, total_price AS total FROM sales 
+        WHERE created_at >= CURDATE() - INTERVAL 1 YEAR
+    ) AS combined_sales
+    GROUP BY MONTH(created_at)
+");
 $monthlySalesData = $monthlySalesQuery->fetchAll(PDO::FETCH_ASSOC);
 
 // Yearly Sales (last 5 years)
-$yearlySalesQuery = $pdo->query("SELECT YEAR(created_at) AS year, SUM(total) AS total_sales 
-                                 FROM customer_purchase 
-                                 WHERE created_at >= CURDATE() - INTERVAL 5 YEAR 
-                                 GROUP BY YEAR(created_at)");
+$yearlySalesQuery = $pdo->query("
+    SELECT YEAR(created_at) AS year, SUM(total) AS total_sales 
+    FROM (
+        SELECT created_at, total FROM customer_purchase 
+        WHERE created_at >= CURDATE() - INTERVAL 5 YEAR
+        UNION ALL
+        SELECT created_at, total_price AS total FROM sales 
+        WHERE created_at >= CURDATE() - INTERVAL 5 YEAR
+    ) AS combined_sales
+    GROUP BY YEAR(created_at)
+");
 $yearlySalesData = $yearlySalesQuery->fetchAll(PDO::FETCH_ASSOC);
 
 // Pass the data to JavaScript using json_encode()
@@ -59,6 +93,8 @@ $weeklySalesJSON = json_encode($weeklySalesData);
 $monthlySalesJSON = json_encode($monthlySalesData);
 $yearlySalesJSON = json_encode($yearlySalesData);
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">

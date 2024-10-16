@@ -352,6 +352,7 @@ th {
     function printReceipt() {
         let receiptContent = `
             <h1 style="text-align:center;">Receipt from ElectroTrack</h1>
+			<link rel="icon" href="Assets/electro.png" type="image/x-icon">
             <img src="Assets/electro.png" alt="ElectroTrack Logo" style="float:right; width:100px; height:auto; margin-bottom: 20px;">
             <p style="text-align:center;">Thank you for your purchase, <?php echo htmlspecialchars($username); ?>!</p>
 			 <p style="text-align:center;"> Address: <?php echo htmlspecialchars($_POST['address']); ?></p>
@@ -388,6 +389,7 @@ th {
 <body>
     <div class="container mt-5">
         <h1>Checkout - ElectroTrack</h1>
+		<link rel="icon" href="Assets/electro.png" type="image/x-icon">
 		  <link rel="icon" href="Assets/electro.png" type="image/x-icon">
         <?php if ($purchaseComplete): ?>
             <div class="alert alert-success">

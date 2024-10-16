@@ -8,7 +8,7 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
-// Fetch sales data
+// Fetch sales data from customer_purchase table
 $sales = [];
 try {
     $stmt = $pdo->query('SELECT * FROM customer_purchase'); // Adjust the table name if necessary
@@ -127,7 +127,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'true') {
             font-weight: bold;
             margin: 0;
         }
-	.date {
+		
+		.date {
 			color: #031124;
 			font-size: 18px;
 			text-align: right;
@@ -149,7 +150,6 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'true') {
         .table td {
             text-align: center;
         }
-		
 		
 		/* Hamburger menu styles */
          .hamburger {
@@ -176,6 +176,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'true') {
             .hamburger {
                 display: block;
             }
+
         }
 
         /* Circle photo and mini circle photo */
@@ -234,7 +235,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'true') {
         <img src="Assets/SALES HISTORY.png" alt="Inventory Icon" 
         style="width: 100%; height: 100%; border-radius: 50%;"></div> Sales History
     </a>
-   <a href="delete.php">
+    <a href="delete.php">
         <div class="mini-circle-photo">
         <img src="Assets/DELETE.png" alt="Inventory Icon" 
         style="width: 100%; height: 100%; border-radius: 50%;"></div> Delete Item

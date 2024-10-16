@@ -1,3 +1,4 @@
+
 <?php 
 session_start(); // Start the session
 include 'db_config.php';
@@ -32,11 +33,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Insert into sales
             $total_price = $item['price'] * $quantity;
-            $stmt = $pdo->prepare("INSERT INTO sales (item_id, quantity, total_price) VALUES (:item_id, :quantity, :total_price)");
-            $stmt->bindParam(':item_id', $item_id);
-            $stmt->bindParam(':quantity', $quantity);
-            $stmt->bindParam(':total_price', $total_price);
-            $stmt->execute();
+            $stmt = $pdo->prepare("INSERT INTO sales (item_id, quantity, total_price, created_at) 
+                       VALUES (:item_id, :quantity, :total_price, NOW())");
+			$stmt->bindParam(':item_id', $item_id);
+			$stmt->bindParam(':quantity', $quantity);
+			$stmt->bindParam(':total_price', $total_price);
+			$stmt->execute();
+
 
             $successMessage = "Sale processed successfully!";
         } else {
@@ -258,7 +261,7 @@ $items = $pdo->query("SELECT * FROM inventory")->fetchAll(PDO::FETCH_ASSOC);
     <div class="circle-photo">
         <img src="Assets/ADMIN.png" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%;">
     </div> <!-- Circular photo placeholder -->
-    <h2>Admin</h2>
+    <h2>Staff</h2>
     
     <!-- Add circle placeholder beside each link -->
     <a href="index.php">
@@ -281,6 +284,7 @@ $items = $pdo->query("SELECT * FROM inventory")->fetchAll(PDO::FETCH_ASSOC);
         <img src="Assets/SALES HISTORY.png" alt="Inventory Icon" 
         style="width: 100%; height: 100%; border-radius: 50%;"></div> Sales History
     </a>
+
     <a href="logout.php" class="logout-link">
         <div class="mini-circle-photo">
         <img src="Assets/LOGOUT.png" alt="Inventory Icon" 

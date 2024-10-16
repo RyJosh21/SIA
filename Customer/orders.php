@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 include 'db.php';  // Ensure this points to your database connection file
